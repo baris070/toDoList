@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yapılacaklar Listesi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #ff8c00; }
+        .container { max-width: 500px; margin-top: 50px; }
+        .completed { text-decoration: line-through; opacity: 0.6; }
+    </style>
+</head>
+<body>
+    <div class="container text-center">
+        <h2 class="text-white">Yapılacaklar Listesi</h2>
+        <div class="input-group my-3">
+            <input type="text" id="taskInput" class="form-control" placeholder="Bugün ne yapacaksın?">
+            <button class="btn btn-secondary" onclick="addTask()">Ekle</button>
+        </div>
+        <ul id="taskList" class="list-group"></ul>
+    </div>
+    
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div id="toastMessage" class="toast align-items-center text-white bg-danger border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body" id="toastText"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", loadTasks);
+
+        function addTask() {
+            let taskInput = document.getElementById("taskInput").value.trim();
+            if (taskInput === "") {
+                showToast("Boş görev eklenemez!");
+                return;
+            }
+            let taskList = document.getElementById("taskList");
+            let li = document.createElement("li");
+            li.className = "list-group-item d-flex justify-content-between align-items-center";
+            li.textContent = taskInput;
+            li.onclick = () => li.classList.toggle("completed");
+            let btn = document.createElement("button");
+            btn.className = "btn btn-danger btn-sm";
+            btn.textContent = "×";
+            btn.onclick = () => { taskList.removeChild(li); saveTasks(); };
+            li.appendChild(btn);
+            taskList.appendChild(li);
+            document.getElementById("taskInput").value = "";
+            saveTasks();
+        }
+
+        function showToast(message) {
+            document.getElementById("toastText").textContent = message;
+            let toast = new bootstrap.Toast(document.getElementById("toastMessage"));
+            toast.show();
+        }
+
+        function saveTasks() {
+            let tasks = [];
+            document.querySelectorAll("#taskList li").forEach(li => {
+                tasks.push({ text: li.textContent.slice(0, -1), completed: li.classList.contains("completed") });
+            });
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+        }
+
+        function loadTasks() {
+            let savedTasks = JSON.parse(localStorage.getItem("tasks")) || [];
+            let taskList = document.getElementById("taskList");
+            savedTasks.forEach(task => {
+                let li = document.createElement("li");
+                li.className = "list-group-item d-flex justify-content-between align-items-center";
+                li.textContent = task.text;
+                if (task.completed) li.classList.add("completed");
+                li.onclick = () => { li.classList.toggle("completed"); saveTasks(); };
+                let btn = document.createElement("button");
+                btn.className = "btn btn-danger btn-sm";
+                btn.textContent = "×";
+                btn.onclick = () => { taskList.removeChild(li); saveTasks(); };
+                li.appendChild(btn);
+                taskList.appendChild(li);
+            });
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
